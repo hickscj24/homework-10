@@ -3,14 +3,16 @@ var fs = require('fs');
 var path = require('path');
 
 var Manager = require('./lib/Manager');
+var Engineer = require('./lib/Engineer');
+var Intern = require('./lib/Intern');
 
 
-function work() {
+async function work() {
 
 
-    function createManager() {
+    async function createManager() {
 
-         inquirer.prompt([
+         await inquirer.prompt([
             /* Pass your questions in here */
             {
                 type: 'input',
@@ -33,20 +35,35 @@ function work() {
                 name: 'number',
                 message: 'what is the managers office number?'
             },
-        ]).then((answers) => {
+        ]).then(async (answers) => {
             console.log(answers)
             // Use user feedback for... whatever!!
             //pass answers to manager class object
+            
             var manager = new Manager(answers.name, answers.id, answers.email, answers.number)  
              console.log(manager);
             //store manager in an array
-            addTeam();
+            await addTeam(manager);
+            
+            html = `
+            <html>
+            <body>
+            `;
+            html += manager.getHTML();
+            for (employee in manager.employees) {
+            	html += employee.getHTML();
+            }
+            html+= `
+            </body>
+            </html>
+            `;
+            
         })
     };
 
 
-    function addTeam() {
-        inquirer.prompt([
+    async function addTeam(manager) {
+       await  inquirer.prompt([
             {
             type: 'list',
             name: 'teamMember',
@@ -57,23 +74,21 @@ function work() {
                 'I do not want to create anymore team members'
             ]
          }
-        ]).then(answers =>{
+        ]).then(async answers =>{
             switch(answers.teamMember) {
                 case 'Engineer':
-                    createEngineer();
-                    break;
+                     await createEngineer(manager);
                 case 'Intern':
-                    createIntern();
-                    break;
-                default:
-                    createTeam();
+                     await createIntern(manager);
+               
+                    
             }
         })
     };
 
 
-    function createEngineer(){
-        inquirer.prompt([
+    async function createEngineer(manager){
+        await inquirer.prompt([
             {
                 type: 'input',
                 name: 'name',
@@ -94,40 +109,45 @@ function work() {
                 name: 'github',
                 message: 'what is the engineers github'
             }
-        ])
+        ]).then(async answers =>{
+        	manager.employees.push(new Engineer(answers.name, answers.id, answers.email, answers.github));
+        });
         //last thing should be called
-        //addTeam();
+        await addTeam(manager);
     };
 
-    function createIntern(){
-        inquirer.prompt([
+    async function createIntern(manager){
+        await inquirer.prompt([
             {
                 type: 'input',
                 name: 'name',
-                message: 'what is the engineers name?'
+                message: 'what is the interns name?'
             },
             {
                 type: 'input',
                 name: 'id',
-                message: 'what is the engineers id?'
+                message: 'what is the interns id?'
             },
             {
                 type: 'input',
                 name: 'email',
-                message: 'what is the engineers email?'
+                message: 'what is the interns email?'
             },
             {
                 type: 'input',
                 name: 'github',
-                message: 'what is the engineers github'
+                message: 'what is the interns github'
             }
-        ])
+        ]).then(async answers =>{
+        	manager.employees.push(new Intern(answers.name, answers.id, answers.email, answers.github));
+        });
          //last thing should be called
-        //addTeam();
+         await addTeam(manager);
     };
 
-    function createTeam(){
-        //we statrt to create our templates using the class object stored in array
+    async function createTeam(){
+        //we start to create our templates using the class object stored in array
+
     }
 
 
